@@ -1,7 +1,87 @@
 ---
 title: "Data Manipulation"
-author: "Xs-761"
-date: "2024-09-24"
 output: html_document
 ---
-test
+
+```{r setup, message=FALSE}
+  library(dplyr)
+  library(tidyverse)
+```
+
+#### **Load in the Dataset**
+```{r, message=FALSE}
+  litters_df = read_csv("../../Datasets/FAS_litters.csv")
+  litters_df = janitor::clean_names(litters_df)
+
+```
+
+#### **Dplyr `select` Function**
+
+```{r}
+  litters_df
+  select(litters_df, group, litter_number)  # select column group & litter_number
+  select(litters_df, group, gd0_weight:gd_of_birth)  # select column group & all groups from gd0_weight to gd_of_birth
+  select(litters_df, -litter_number)  # get rid of column "litter_number" and keep everything else
+  select(litters_df, starts_with("gd"))    # a quick way to select columns by matching string patterns
+  select(litters_df, litter_number, everything())   # select "litter_number" column and then all else columns
+```
+
+#### **Rename Columns**
+
+```{r}
+  select(litters_df, GROUP=group, LITTER_NUMBER = litter_number)    # rename column group and litter_number while extracted
+  rename(litters_df, GROUP=group, LITTER_NUMBER = litter_number)    # rename column group and litter_number and display all dataset
+```
+
+#### **Relocate Column when Displaying (but not changing the original column sequence)**
+```{r}
+  relocate(litters_df, litter_number)
+  litters_df
+```
+
+#### **Dplyr `Filter` Function**
+```{r}
+  filter(litters_df, gd0_weight < 22)
+  filter(litters_df, gd0_weight >= 22)
+  filter(litters_df, gd0_weight == 27)
+  filter(litters_df, gd0_weight != 27)
+  filter(litters_df, gd0_weight >= 22, gd_of_birth == 20)
+  filter(litters_df, group == "Mod8")
+  filter(litters_df, group %in% c("Con7", "Mod8"))
+```
+
+#### **Dplyr `mutate` Function**
+*The mutate() function is part of the dplyr package. It is used to create new columns or modify existing columns in a data frame without changing the structure of the data frame*
+```{r, message=FALSE, warning=FALSE}
+  litters_mutated = mutate(litters_df, wt_gain=as.numeric(gd18_weight)-as.numeric(gd0_weight), new_col=str_to_lower(group) ) 
+  # str_to_lower() converts all string arguments inside to lower case
+  litters_mutated
+```
+
+#### **Dplyr `arrange` Function**
+
+```{r}
+  arrange(litters_df, pups_born_alive)        # order the pops_born_alive column in ascending order
+  arrange(litters_df, desc(pups_born_alive))  # or you can use the optional desc() to sort in descending order
+```
+
+#### **`%>%`**
+```{r, results="HIDE", message=FALSE}
+  # originally, we would typically do
+  litters_data_raw = read_csv("../../Datasets/FAS_litters.csv")
+  litters_clean_name = janitor::clean_names(litters_data_raw)
+  littesr_data_selected = select(litters_clean_name, -pups_born_alive)
+  litters_without_missing = drop_na(litters_mutated, gd0_weight)
+```
+
+*NOW USE THE PIPE OPERATOR INSTEAD*
+##### `%>%` can be interpreted as "**AND THEN**"
+```{r}
+litters_df = 
+    read_csv("../../Datasets/FAS_litters.csv") %>%
+    janitor::clean_names() %>%
+    select(-pups_born_alive) %>%
+    drop_na(gd0_weight)
+litters_df
+```
+
